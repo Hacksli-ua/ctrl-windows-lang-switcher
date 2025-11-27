@@ -28,9 +28,9 @@ const (
 	WM_KEYUP       = 0x0101
 	WM_SYSKEYDOWN  = 0x0104
 	WM_SYSKEYUP    = 0x0105
-	VK_MENU        = 0x12 // Alt key
-	VK_LMENU       = 0xA4 // Left Alt
-	VK_RMENU       = 0xA5 // Right Alt
+	VK_CONTROL     = 0x11 // Ctrl key
+	VK_LCONTROL    = 0xA2 // Left Ctrl
+	VK_RCONTROL    = 0xA3 // Right Ctrl
 	WM_INPUTLANGCHANGEREQUEST = 0x0050
 	INPUTLANGCHANGE_FORWARD   = 0x0002
 )
@@ -53,8 +53,8 @@ type MSG struct {
 }
 
 var (
-	keyboardHook uintptr
-	altPressed   bool
+	keyboardHook    uintptr
+	ctrlPressed     bool
 	otherKeyPressed bool
 )
 
@@ -65,20 +65,20 @@ func lowLevelKeyboardProc(nCode int, wParam uintptr, lParam uintptr) uintptr {
 
 		switch wParam {
 		case WM_KEYDOWN, WM_SYSKEYDOWN:
-			if vkCode == VK_MENU || vkCode == VK_LMENU || vkCode == VK_RMENU {
-				if !altPressed {
-					altPressed = true
+			if vkCode == VK_CONTROL || vkCode == VK_LCONTROL || vkCode == VK_RCONTROL {
+				if !ctrlPressed {
+					ctrlPressed = true
 					otherKeyPressed = false
 				}
-			} else if altPressed {
+			} else if ctrlPressed {
 				otherKeyPressed = true
 			}
 		case WM_KEYUP, WM_SYSKEYUP:
-			if vkCode == VK_MENU || vkCode == VK_LMENU || vkCode == VK_RMENU {
-				if altPressed && !otherKeyPressed {
+			if vkCode == VK_CONTROL || vkCode == VK_LCONTROL || vkCode == VK_RCONTROL {
+				if ctrlPressed && !otherKeyPressed {
 					switchLanguage()
 				}
-				altPressed = false
+				ctrlPressed = false
 				otherKeyPressed = false
 			}
 		}
@@ -172,7 +172,7 @@ func messageLoop() {
 func onReady() {
 	systray.SetIcon(getIcon())
 	systray.SetTitle("Lang Switcher")
-	systray.SetTooltip("Alt для перемикання мови")
+	systray.SetTooltip("Ctrl для перемикання мови")
 
 	mStatus := systray.AddMenuItem("Статус: Активний", "")
 	mStatus.Disable()
